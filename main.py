@@ -95,24 +95,29 @@ with open('profile_links.csv', 'r', encoding="utf-8") as file:
             html = driver.page_source
             soup = BeautifulSoup(html, features="html.parser")
 
-            buttons = soup.find_all('button')
+            buttons = soup.find_all('div')
 
             time.sleep(2)
 
             for i in buttons:
-                print(i.text)
                 if i.text == 'Message':
                     my_xpath = str(xpath_soup(i))
                     driver.find_element(By.XPATH, my_xpath).click()
-                    time.sleep(10)
+                    time.sleep(15)
                     try:
-                        driver.find_element(By.TAG_NAME, "textarea").send_keys(my_message)
+                        #my_message = my_message.replace("\n", Keys.chord(Keys.SHIFT, Keys.ENTER))
+                        for line in my_message.split('\n'):
+                            ActionChains(driver).send_keys(line).perform()
+                            ActionChains(driver).key_down(Keys.SHIFT).key_down(Keys.ENTER).key_up(Keys.SHIFT).key_up(Keys.ENTER).perform()
+                        ActionChains(driver).send_keys(Keys.RETURN).perform()
+                        #driver.find_element(By.TAG_NAME, "textarea").send_keys(my_message)
                         time.sleep(10)
                         # pyautogui.press('enter')
-                        driver.find_element(By.TAG_NAME, "textarea").send_keys(Keys.RETURN)
+                        # driver.find_element(By.TAG_NAME, "textarea").send_keys(Keys.RETURN)
 
                         time.sleep(3)
                         already_sent_message.append(row[0])
+                        already_sent_message = list(set(already_sent_message))  # convert to set to remove duplicates
                         already_sent_message_np = np.array(already_sent_message)
                         already_sent_message_pamdas = pd.DataFrame({"Profile Link" : already_sent_message_np})
                         already_sent_message_pamdas.to_csv("already_send_message.csv", index=False)  
@@ -123,13 +128,20 @@ with open('profile_links.csv', 'r', encoding="utf-8") as file:
                         print("Error occured----")
                 else:
                     already_sent_message.append(row[0])
+                    already_sent_message = list(set(already_sent_message)) # convert to set to remove duplicates
+
                     already_sent_message_np = np.array(already_sent_message)
                     already_sent_message_pamdas = pd.DataFrame({"Profile Link" : already_sent_message_np})
                     already_sent_message_pamdas.to_csv("already_send_message.csv", index=False)  
 
         print(count)    
-        if count == 40:
+        if count == 10000:
             break
+
+
+
+
+
 
 
 
